@@ -23,32 +23,34 @@ const DisplayActiveStep = () => {
         if (qrData === "") return;
         try {
             setActiveStep(VerificationSteps.Verifying);
-            let vc = JSON.parse(decodeQrData(qrData));
-            // TODO: is it a vc? - check format
-            verify(vc)
-                .then(status => {
-                    console.log("Status: ", status);
-                    // did-resolution fails if the internet is not available and proof can't be verified
-                    if (status?.checks?.proof === "NOK"
-                        && !window.navigator.onLine) {
-                        navigate('/offline');
-                    }
-                    setVcStatus(status);
-                    setVc(vc);
-                })
-                .catch(error => {
-                    console.error("Error occurred while verifying the VC: ", error);
-                    console.error("Error code: ", error.code);
-                    if (!window.navigator.onLine) {
-                        navigate('/offline');
-                        return;
-                    }
-                    setVc(null);
-                    setVcStatus({status: "NOK", checks: []});
-                }).finally(() => {
-                    setQrData("");
-                    setActiveStep(VerificationSteps.DisplayResult);
-            });
+            decodeQrData(qrData).then((data) => {
+                let vc = JSON.parse(data);
+                // TODO: is it a vc? - check format
+                verify(vc)
+                    .then(status => {
+                        console.log("Status: ", status);
+                        // did-resolution fails if the internet is not available and proof can't be verified
+                        if (status?.checks?.proof === "NOK"
+                            && !window.navigator.onLine) {
+                            navigate('/offline');
+                        }
+                        setVcStatus(status);
+                        setVc(vc);
+                    })
+                    .catch(error => {
+                        console.error("Error occurred while verifying the VC: ", error);
+                        console.error("Error code: ", error.code);
+                        if (!window.navigator.onLine) {
+                            navigate('/offline');
+                            return;
+                        }
+                        setVc(null);
+                        setVcStatus({status: "NOK", checks: []});
+                    }).finally(() => {
+                        setQrData("");
+                        setActiveStep(VerificationSteps.DisplayResult);
+                });
+            })
         } catch (error) {
             console.error("Error occurred while reading the qrData: ", error);
             setQrData("");
